@@ -6,41 +6,41 @@ This is an example of how run plausible on dokku.
 
 First create the plausible application:
 
-    $ dokku apps:create plausible
+    dokku apps:create plausible
 
 Plausible needs a postgresql and a clickhouse database. Dokku has official
 plugins for both. Install the plugins:
 
-    $ sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git postgres
-    $ sudo dokku plugin:install https://github.com/dokku/dokku-clickhouse.git clickhouse
+    sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git postgres
+    sudo dokku plugin:install https://github.com/dokku/dokku-clickhouse.git clickhouse
 
 Create the postgresql database and link it to the plausible app:
 
-    $ dokku postgres:create plausible-postgres
-    $ dokku postgres:link plausible-postgres plausible
+    dokku postgres:create plausible-postgres
+    dokku postgres:link plausible-postgres plausible
 
 Create the clickhouse database and link it to the plausible app:
 
-    $ dokku clickhouse:create plausible-clickhouse
-    $ dokku clickhouse:link plausible-clickhouse plausible
+    dokku clickhouse:create plausible-clickhouse
+    dokku clickhouse:link plausible-clickhouse plausible
 
 # General Plausible Configuration
 
 Set the plausible admin user credentials:
 
-    $ dokku config:set plausible ADMIN_USER_EMAIL=admin@example.com
-    $ dokku config:set plausible ADMIN_USER_NAME=admin
-    $ dokku config:set plausible ADMIN_USER_PWD=secret
+    dokku config:set plausible ADMIN_USER_EMAIL=admin@example.com
+    dokku config:set plausible ADMIN_USER_NAME=admin
+    dokku config:set plausible ADMIN_USER_PWD=secret
 
 Set the base URL, i.e., the URL plausible will be hosted from:
 
-    $ dokku config:set plausible BASE_URL=http://plausible.example.com/
+    dokku config:set plausible BASE_URL=http://plausible.example.com/
 
 Set the secret key base. It should be long (at least 64 characters) and
 random. If you have Phoenix installed, you can generate this with `mix phx.gen.secret`. Otherwise you can use openssl to generate some random bytes
 and base64 encode it:
 
-    $ dokku config:set plausible SECRET_KEY_BASE=$(openssl rand 60 | base64 -w 0)
+    dokku config:set plausible SECRET_KEY_BASE=$(openssl rand 60 | base64 -w 0)
 
 You can optionally disable registrations to your Plausble instance.
 
@@ -51,11 +51,11 @@ You can optionally disable registrations to your Plausble instance.
 Plausible needs a SMTP server to send emails. I'm using SES. Substitute your
 own values:
 
-    $ dokku config:set plausible MAILER_EMAIL=sender@example.com --no-restart
-    $ dokku config:set plausible SMTP_HOST_ADDR=email-smtp.us-west-2.amazonaws.com
-    $ dokku config:set plausible SMTP_HOST_PORT=587
-    $ dokku config:set plausible SMTP_USER_NAME=your_smtp_user_name
-    $ dokku config:set plausible SMTP_USER_PWD=your_smtp_user_password
+    dokku config:set plausible MAILER_EMAIL=sender@example.com --no-restart
+    dokku config:set plausible SMTP_HOST_ADDR=email-smtp.us-west-2.amazonaws.com
+    dokku config:set plausible SMTP_HOST_PORT=587
+    dokku config:set plausible SMTP_USER_NAME=your_smtp_user_name
+    dokku config:set plausible SMTP_USER_PWD=your_smtp_user_password
 
 # Understand this Dockerfile
 
@@ -93,14 +93,14 @@ to the database.
 
 Plausible listens on port 8000. Configure Dokku to forward requests from port 80 and 443 to Plausible.
 
-    $ dokku proxy:ports-set plausible http:80:8080 https:443:8080
+    dokku proxy:ports-set plausible http:80:8080 https:443:8080
 
 Clone this repository, add a remote pointing to your dokku server, and push:
 
-    $ git clone https://github.com/b-ggs/dokku-plausible.git
-    $ cd dokku-plausible
-    $ git remote add dokku dokku@example.com:plausible
-    $ git push dokku master
+    git clone https://github.com/b-ggs/dokku-plausible.git
+    cd dokku-plausible
+    git remote add dokku dokku@example.com:plausible
+    git push dokku master
 
 With that, plausible should be up and running having everything it needs to
 connect to the postgresql database, the clickhouse database, and the SMTP
@@ -111,36 +111,36 @@ server.
 You'll need an account ID and license key from MaxMind. Once you have those,
 create a maxmind app to periodically download the maxmind country database:
 
-    $ dokku apps:create maxmind
+    dokku apps:create maxmind
 
 Configure it:
 
-    $ dokku config:set maxmind GEOIPUPDATE_ACCOUNT_ID=<account_id>
-    $ dokku config:set maxmind GEOIPUPDATE_LICENSE_KEY=<license_key>
-    $ dokku config:set maxmind GEOIPUPDATE_FREQUENCY=168
-    $ dokku config:set maxmind GEOIPUPDATE_EDITION_IDS=GeoLite2-Country
+    dokku config:set maxmind GEOIPUPDATE_ACCOUNT_ID=<account_id>
+    dokku config:set maxmind GEOIPUPDATE_LICENSE_KEY=<license_key>
+    dokku config:set maxmind GEOIPUPDATE_FREQUENCY=168
+    dokku config:set maxmind GEOIPUPDATE_EDITION_IDS=GeoLite2-Country
 
 As root, create a shared mount point to share the MaxMind country database:
 
-    # cd /var/lib/dokku/data/storage
-    # mkdir maxmind
-    # sudo chown -R 32767:32767 maxmind
+    cd /var/lib/dokku/data/storage
+    mkdir maxmind
+    sudo chown -R 32767:32767 maxmind
 
 Mount it in the filesystem where the container downloads the database:
 
-    $ dokku storage:mount maxmind /var/lib/dokku/data/storage/maxmind:/usr/share/GeoIP
+    dokku storage:mount maxmind /var/lib/dokku/data/storage/maxmind:/usr/share/GeoIP
 
 Install the container: (Requires dokku 0.24)
 
-    $ dokku git:from-image maxmind maxmindinc/geoipupdate
+    dokku git:from-image maxmind maxmindinc/geoipupdate
 
 Mount the same directory in the plausible container:
 
-    $ dokku storage:mount plausible /var/lib/dokku/data/storage/maxmind:/geoip
+    dokku storage:mount plausible /var/lib/dokku/data/storage/maxmind:/geoip
 
 Finally, configure plausible to use the country database:
 
-    $ dokku config:set plausible GEOLITE2_COUNTRY_DB=/geoip/GeoLite2-Country.mmdb
+    dokku config:set plausible GEOLITE2_COUNTRY_DB=/geoip/GeoLite2-Country.mmdb
 
 # Additional tips
 
