@@ -16,13 +16,13 @@ plugins for both.  Install the plugins:
 
 Create the postgresql database and link it to the plausible app:
 
-    $ dokku postgres:create plausible
-    $ dokku postgres:link plausible plausible
+    $ dokku postgres:create plausible-postgres
+    $ dokku postgres:link plausible-postgres plausible
 
 Create the clickhouse database and link it to the plausible app:
 
-    $ dokku clickhouse:create plausible
-    $ dokku clickhouse:link plausible plausible
+    $ dokku clickhouse:create plausible-clickhouse
+    $ dokku clickhouse:link plausible-clickhouse plausible
 
 # General Plausible Configuration
 
@@ -63,7 +63,7 @@ When you link the plausible clickhouse database to the plausible application,
 dokku makes some environment variables available inside of your plausible
 container.  One is called `CLICKHOUSE_URL`:
 
-    CLICKHOUSE_URL=clickhouse://plausible:3e1dd262671f044e@dokku-clickhouse-plausible:9000/plausible
+    CLICKHOUSE_URL=clickhouse://plausible-clickhouse:3e1dd262671f044e@dokku-clickhouse-plausible-clickhouse:9000/plausible_clickhouse
 
 However that's not exactly what we want for two reasons:
 
@@ -76,11 +76,11 @@ However that's not exactly what we want for two reasons:
 Fortunately the dokku clickhouse plugin adds some other environment variables
 which we can use to construct the URL that plausible expects:
 
-    DOKKU_CLICKHOUSE_PLAUSIBLE_ENV_CLICKHOUSE_DB=plausible
-    DOKKU_CLICKHOUSE_PLAUSIBLE_ENV_CLICKHOUSE_PASSWORD=3e1dd262671f044e
-    DOKKU_CLICKHOUSE_PLAUSIBLE_PORT_8123_TCP_ADDR=172.17.0.4
-    DOKKU_CLICKHOUSE_PLAUSIBLE_PORT_8123_TCP_PORT=8123
-    DOKKU_CLICKHOUSE_PLAUSIBLE_ENV_CLICKHOUSE_DB=plausible
+    DOKKU_CLICKHOUSE_PLAUSIBLE_CLICKHOUSE_ENV_CLICKHOUSE_DB=plausible
+    DOKKU_CLICKHOUSE_PLAUSIBLE_CLICKHOUSE_ENV_CLICKHOUSE_PASSWORD=3e1dd262671f044e
+    DOKKU_CLICKHOUSE_PLAUSIBLE_CLICKHOUSE_PORT_8123_TCP_ADDR=172.17.0.4
+    DOKKU_CLICKHOUSE_PLAUSIBLE_CLICKHOUSE_PORT_8123_TCP_PORT=8123
+    DOKKU_CLICKHOUSE_PLAUSIBLE_CLICKHOUSE_ENV_CLICKHOUSE_DB=plausible
 
 The Dockerfile in this project uses these to export the
 `CLICKHOUSE_DATABASE_URL` environment variable which plausible uses to connect
@@ -88,9 +88,13 @@ to the database.
 
 # Deploy
 
+Plausible listens on port 8000. Configure Dokku to forward requests from port 80 and 443 to Plausible.
+
+    $ dokku proxy:ports-set plausible http:80:8080 https:443:8080
+
 Clone this repository, add a remote pointing to your dokku server, and push:
 
-    $ git clone https://github.com/nextchessmove/dokku-plausible.git
+    $ git clone https://github.com/b-ggs/dokku-plausible.git
     $ cd dokku-plausible
     $ git remote add dokku dokku@example.com:plausible
     $ git push dokku master
