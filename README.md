@@ -42,6 +42,10 @@ and base64 encode it:
 
     $ dokku config:set plausible SECRET_KEY_BASE=$(openssl rand 60 | base64 -w 0)
 
+You can optionally disable registrations to your Plausble instance.
+
+    dokku config:set plausible DISABLE_REGISTRATION=true
+
 # SMTP Configuration
 
 Plausible needs a SMTP server to send emails. I'm using SES. Substitute your
@@ -137,3 +141,15 @@ Mount the same directory in the plausible container:
 Finally, configure plausible to use the country database:
 
     $ dokku config:set plausible GEOLITE2_COUNTRY_DB=/geoip/GeoLite2-Country.mmdb
+
+# Additional tips
+
+## Updating a user's password
+
+On your Dokku host, run:
+
+    dokku enter plausible web /app/bin/plausible remote
+
+When an interactive Elixir shell appears, run the following, replacing the email with your user's email, and the password with your preferred password:
+
+    Plausible.Repo.get_by(Plausible.Auth.User, email: "admin@example.com") |> Plausible.Auth.User.set_password("yourpassword") |> Plausible.Repo.update
