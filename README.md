@@ -8,8 +8,8 @@ First create the plausible application:
 
     $ dokku apps:create plausible
 
-Plausible needs a postgresql and a clickhouse database.  Dokku has official
-plugins for both.  Install the plugins:
+Plausible needs a postgresql and a clickhouse database. Dokku has official
+plugins for both. Install the plugins:
 
     $ sudo dokku plugin:install https://github.com/dokku/dokku-postgres.git postgres
     $ sudo dokku plugin:install https://github.com/dokku/dokku-clickhouse.git clickhouse
@@ -36,16 +36,15 @@ Set the base URL, i.e., the URL plausible will be hosted from:
 
     $ dokku config:set plausible BASE_URL=http://plausible.example.com/
 
-Set the secret key base.  It should be long (at least 64 characters) and
-random.  If you have Phoenix installed, you can generate this with `mix
-phx.gen.secret`.  Otherwise you can use openssl to generate some random bytes
+Set the secret key base. It should be long (at least 64 characters) and
+random. If you have Phoenix installed, you can generate this with `mix phx.gen.secret`. Otherwise you can use openssl to generate some random bytes
 and base64 encode it:
 
     $ dokku config:set plausible SECRET_KEY_BASE=$(openssl rand 60 | base64 -w 0)
 
 # SMTP Configuration
 
-Plausible needs a SMTP server to send emails.  I'm using SES.  Substitute your
+Plausible needs a SMTP server to send emails. I'm using SES. Substitute your
 own values:
 
     $ dokku config:set plausible MAILER_EMAIL=sender@example.com --no-restart
@@ -61,17 +60,17 @@ understand what's going on.
 
 When you link the plausible clickhouse database to the plausible application,
 dokku makes some environment variables available inside of your plausible
-container.  One is called `CLICKHOUSE_URL`:
+container. One is called `CLICKHOUSE_URL`:
 
     CLICKHOUSE_URL=clickhouse://plausible-clickhouse:3e1dd262671f044e@dokku-clickhouse-plausible-clickhouse:9000/plausible_clickhouse
 
 However that's not exactly what we want for two reasons:
 
-  1. Plausible is expecting an environment variable called
-     `CLICKHOUSE_DATABASE_URL`, and
-  2. The URL is for port 9000 which is for the clickhouse native TCP interface
-     and plausible expects to connect to clickhouse's HTTP interface running on
-     port 8123.
+1. Plausible is expecting an environment variable called
+   `CLICKHOUSE_DATABASE_URL`, and
+2. The URL is for port 9000 which is for the clickhouse native TCP interface
+   and plausible expects to connect to clickhouse's HTTP interface running on
+   port 8123.
 
 Fortunately the dokku clickhouse plugin adds some other environment variables
 which we can use to construct the URL that plausible expects:
@@ -103,11 +102,10 @@ With that, plausible should be up and running having everything it needs to
 connect to the postgresql database, the clickhouse database, and the SMTP
 server.
 
-
 # IP Geolocation
 
-You'll need an account ID and license key from MaxMind.  Once you have those,
-create a maxmind app to periodically download the maxmind country database: 
+You'll need an account ID and license key from MaxMind. Once you have those,
+create a maxmind app to periodically download the maxmind country database:
 
     $ dokku apps:create maxmind
 
@@ -128,7 +126,7 @@ Mount it in the filesystem where the container downloads the database:
 
     $ dokku storage:mount maxmind /var/lib/dokku/data/storage/maxmind:/usr/share/GeoIP
 
-Install the container:  (Requires dokku 0.24)
+Install the container: (Requires dokku 0.24)
 
     $ dokku git:from-image maxmind maxmindinc/geoipupdate
 
